@@ -11,15 +11,40 @@ module.exports = async (req, res) => {
         const licenseCode = body ? body.licenseCode : null;
 
         try {
-            // URL GITHUB LU UDAH OTOMATIS MASUK DI SINI
-            const githubRawUrl = "https://raw.githubusercontent.com/riza220409/server-kopi/main/api/licenses.json?t=" + Date.now();
-            const response = await fetch(githubRawUrl);
-            if(!response.ok) throw new Error("File licenses.json belum ada di GitHub");
-            
-            const licenses = await response.json();
+            const GITHUB_TOKEN = "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";
+            const GITHUB_USER = "riza220409";
+            const GITHUB_REPO = "server-kopi";
 
-            if (licenses[licenseCode]) {
-                const expiredDate = new Date(licenses[licenseCode]);
+            const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/api/licenses.json`;
+            
+            const response = await fetch(apiUrl, {
+                headers: {
+                    'Authorization': `token ${GITHUB_TOKEN}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'User-Agent': 'Vercel-Serverless'
+                }
+            });
+
+            if(!response.ok) {
+                throw new Error(`Gagal ambil data GitHub. Status: ${response.status}`);
+            }
+            
+            const fileData = await response.json();
+            
+            // DECODE PAKAI BUFFER NODE.JS (Biar gak crash)
+            const content = Buffer.from(fileData.content, 'base64').toString('utf8');
+            
+            const licenses = JSON.parse(content);
+            const data = licenses[licenseCode];
+
+            if (data) {
+                let expiredDate;
+                if (typeof data === 'string') {
+                    expiredDate = new Date(data);
+                } else {
+                    expiredDate = new Date(data.exp);
+                }
+
                 if (new Date() > expiredDate) {
                     return res.status(403).json({ status: "expired", message: "Lisensi sudah expired." });
                 }
