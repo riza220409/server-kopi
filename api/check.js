@@ -1,7 +1,5 @@
-// GANTI SEMUA ISINYA JADI SEPERTI INI
-const licenses = require('./licenses.json');
-
 module.exports = (req, res) => {
+    // Izin CORS biar APK bisa akses
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -18,6 +16,15 @@ module.exports = (req, res) => {
         
         const licenseCode = body ? body.licenseCode : null;
         
+        // ==========================================
+        // DATABASE LISENSI LU (TARUH DI SINI AJA)
+        // ==========================================
+        const licenses = {
+            "8C3C6A0D": "2026-12-31T23:59:59Z",
+            "BIMA1234": "2027-12-31T23:59:59Z"
+        };
+        // ==========================================
+
         try {
             if (licenses[licenseCode]) {
                 const expiredDate = new Date(licenses[licenseCode]);
