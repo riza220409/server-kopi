@@ -12,8 +12,7 @@ module.exports = async (req, res) => {
 
         try {
             // URL GITHUB LU UDAH OTOMATIS MASUK DI SINI
-            const githubRawUrl = "https://raw.githubusercontent.com/riza220409/server-kopi/main/api/licenses.json";
-            
+            const githubRawUrl = "https://raw.githubusercontent.com/riza220409/server-kopi/main/api/licenses.json?t=" + Date.now();
             const response = await fetch(githubRawUrl);
             if(!response.ok) throw new Error("File licenses.json belum ada di GitHub");
             
