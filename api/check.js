@@ -11,7 +11,7 @@ module.exports = async (req, res) => {
         const licenseCode = body ? body.licenseCode : null;
 
         try {
-            const GITHUB_TOKEN = "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";
+            const GITHUB_TOKEN = process.env.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;
             const GITHUB_USER = "riza220409";
             const GITHUB_REPO = "server-kopi";
 
