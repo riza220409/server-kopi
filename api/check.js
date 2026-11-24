@@ -2,23 +2,25 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = (req, res) => {
-    // 1. IZIN CORS (Biar APK Android bisa akses)
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-    // 2. Balas request OPTIONS (Wajib buat Android WebView)
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
 
-    // 3. Logika Utama
     if (req.method === 'POST') {
-        const { licenseCode } = req.body;
+        // 1. Baca Body (jaga-jaga kalau Vercel ngirimnya dalam bentuk string)
+        let body = req.body;
+        if (typeof body === 'string') {
+            try { body = JSON.parse(body); } catch (e) {}
+        }
+        const licenseCode = body ? body.licenseCode : null;
         
         try {
-            // Baca file licenses.json
-            const jsonPath = path.join(process.cwd(), 'api', 'licenses.json');
+            // 2. PAKAI __dirname (Biar dia nyari file licenses.json di folder yang sama)
+            const jsonPath = path.join(__dirname, 'licenses.json');
             const fileData = fs.readFileSync(jsonPath, 'utf8');
             const licenses = JSON.parse(fileData);
 
@@ -35,7 +37,7 @@ module.exports = (req, res) => {
                 return res.status(404).json({ status: "error", message: "Kode tidak ditemukan." });
             }
         } catch (error) {
-            return res.status(500).json({ status: "error", message: "Server error: Gagal baca database." });
+            return res.status(500).json({ status: "error", message: "Gagal baca database. Pastikan file api/licenses.json ada. Error: " + error.message });
         }
     }
     
