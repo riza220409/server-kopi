@@ -11,9 +11,9 @@ module.exports = async (req, res) => {
         const licenseCode = body ? body.licenseCode : null;
 
         try {
-            const GITHUB_TOKEN = process.env.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;
-            const GITHUB_USER = "riza220409";
-            const GITHUB_REPO = "server-kopi";
+            const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const GITHUB_USER = process.env.GITHUB_USER;
+const GITHUB_REPO = process.env.GITHUB_REPO;
 
             const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/api/licenses.json`;
             
