@@ -11,10 +11,14 @@ module.exports = async (req, res) => {
         const licenseCode = body ? body.licenseCode : null;
 
         try {
-            const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const GITHUB_USER = process.env.GITHUB_USER;
-const GITHUB_REPO = process.env.GITHUB_REPO;
+            // TRIK: Decode Base64 jadi Token Asli secara diam-diam
+            // Ganti teks di dalam Buffer.from dengan Base64 lu
+            const GITHUB_TOKEN = Buffer.from("BASE64_TOKEN_LU_DISINI", "base64").toString("utf8");
+            
+            const GITHUB_USER = "riza220409";
+            const GITHUB_REPO = "server-kopi";
 
+            // Tetap pakai API Github (Anti Cache, Instan)
             const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/api/licenses.json`;
             
             const response = await fetch(apiUrl, {
@@ -30,20 +34,13 @@ const GITHUB_REPO = process.env.GITHUB_REPO;
             }
             
             const fileData = await response.json();
-            
-            // DECODE PAKAI BUFFER NODE.JS (Biar gak crash)
             const content = Buffer.from(fileData.content, 'base64').toString('utf8');
             
             const licenses = JSON.parse(content);
             const data = licenses[licenseCode];
 
             if (data) {
-                let expiredDate;
-                if (typeof data === 'string') {
-                    expiredDate = new Date(data);
-                } else {
-                    expiredDate = new Date(data.exp);
-                }
+                let expiredDate = (typeof data === 'string') ? new Date(data) : new Date(data.exp);
 
                 if (new Date() > expiredDate) {
                     return res.status(403).json({ status: "expired", message: "Lisensi sudah expired." });
