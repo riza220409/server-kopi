@@ -11,36 +11,21 @@ module.exports = async (req, res) => {
         const licenseCode = body ? body.licenseCode : null;
 
         try {
-            // TRIK: Decode Base64 jadi Token Asli secara diam-diam
-            // Ganti teks di dalam Buffer.from dengan Base64 lu
-            const GITHUB_TOKEN = Buffer.from("BASE64_TOKEN_LU_DISINI", "base64").toString("utf8");
+            // URL FIREBASE LU
+            const FIREBASE_URL = "https://server-kopi-default-rtdb.asia-southeast1.firebasedatabase.app/licenses.json";
             
-            const GITHUB_USER = "riza220409";
-            const GITHUB_REPO = "server-kopi";
-
-            // Tetap pakai API Github (Anti Cache, Instan)
-            const apiUrl = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/api/licenses.json`;
+            const response = await fetch(FIREBASE_URL);
             
-            const response = await fetch(apiUrl, {
-                headers: {
-                    'Authorization': `token ${GITHUB_TOKEN}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'User-Agent': 'Vercel-Serverless'
-                }
-            });
-
-            if(!response.ok) {
-                throw new Error(`Gagal ambil data GitHub. Status: ${response.status}`);
+            if (response.status === 404) {
+                 return res.status(404).json({ status: "error", message: "Belum ada lisensi di database." });
             }
-            
-            const fileData = await response.json();
-            const content = Buffer.from(fileData.content, 'base64').toString('utf8');
-            
-            const licenses = JSON.parse(content);
-            const data = licenses[licenseCode];
+            if (!response.ok) throw new Error("Gagal konek ke Firebase.");
+
+            const licenses = await response.json();
+            const data = licenses ? licenses[licenseCode] : null;
 
             if (data) {
-                let expiredDate = (typeof data === 'string') ? new Date(data) : new Date(data.exp);
+                let expiredDate = new Date(data.exp);
 
                 if (new Date() > expiredDate) {
                     return res.status(403).json({ status: "expired", message: "Lisensi sudah expired." });
